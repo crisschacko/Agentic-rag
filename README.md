@@ -23,3 +23,4 @@ API keys are not included. The notebook uses environment/Colab secret access rat
 
 ## Results integrity
 No fabricated correctness percentage is introduced. The package explicitly distinguishes the executable notebook evidence from the synthesized results table contained in the 19-page corpus. The original historical CSV was not available in the accessible file library during this rebuild, so the included results CSV is explicitly labelled `RECONSTRUCTED`.
+Experimental Agentic Retrieval-Augmented Generation system exploring adaptive retrieval, reasoning and evidence verification.
