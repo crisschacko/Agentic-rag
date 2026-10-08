@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
@@ -9,8 +10,13 @@ from pypdf import PdfReader
 
 app = Flask(__name__)
 
+# --------------------------------------------------
+# Configuration
+# --------------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
+
 PDF_PATH = DATA_DIR / "Reference corpus.pdf"
 
 MODEL_NAME = os.getenv(
@@ -18,49 +24,92 @@ MODEL_NAME = os.getenv(
     "gpt-5.6-luna"
 )
 
-TOP_K = int(os.getenv("TOP_K", "4"))
-MAX_ATTEMPTS = int(os.getenv("MAX_ATTEMPTS", "2"))
+TOP_K = int(
+    os.getenv("TOP_K", "4")
+)
+
+MAX_ATTEMPTS = int(
+    os.getenv("MAX_ATTEMPTS", "2")
+)
+
+# Enable useful error information in Render logs.
+logging.basicConfig(
+    level=logging.INFO
+)
+
+
+# --------------------------------------------------
+# Global resources
+# --------------------------------------------------
 
 client = None
 documents = []
 
 
+# --------------------------------------------------
+# OpenAI client
+# --------------------------------------------------
+
 def get_openai_client():
+
     global client
 
     if client is None:
-        api_key = os.getenv("OPENAI_API_KEY")
+
+        api_key = os.getenv(
+            "OPENAI_API_KEY"
+        )
 
         if not api_key:
+
             raise RuntimeError(
-                "OPENAI_API_KEY is not configured."
+                "OPENAI_API_KEY is not configured in Render."
             )
 
-        client = OpenAI(api_key=api_key)
+        client = OpenAI(
+            api_key=api_key
+        )
 
     return client
 
 
+# --------------------------------------------------
+# Research corpus loading
+# --------------------------------------------------
+
 def load_corpus():
+
     global documents
 
     if documents:
         return documents
 
     if not PDF_PATH.exists():
+
         raise FileNotFoundError(
             f"Research corpus not found: {PDF_PATH}"
         )
 
-    reader = PdfReader(str(PDF_PATH))
+    app.logger.info(
+        "Loading research corpus: %s",
+        PDF_PATH
+    )
+
+    reader = PdfReader(
+        str(PDF_PATH)
+    )
 
     for page_number, page in enumerate(
         reader.pages,
         start=1
     ):
-        text = (page.extract_text() or "").strip()
+
+        text = (
+            page.extract_text() or ""
+        ).strip()
 
         if text:
+
             documents.append(
                 {
                     "text": text,
@@ -70,14 +119,25 @@ def load_corpus():
             )
 
     if not documents:
+
         raise RuntimeError(
             "No readable text was extracted from the research corpus."
         )
 
+    app.logger.info(
+        "Loaded %d research pages.",
+        len(documents)
+    )
+
     return documents
 
 
+# --------------------------------------------------
+# Lightweight tokenization
+# --------------------------------------------------
+
 def tokenize(text):
+
     return set(
         re.findall(
             r"\b[a-zA-Z0-9]{2,}\b",
@@ -86,17 +146,20 @@ def tokenize(text):
     )
 
 
-def retrieve(query, k=TOP_K):
-    """
-    Lightweight lexical retrieval.
+# --------------------------------------------------
+# Lightweight retrieval
+# --------------------------------------------------
 
-    This avoids loading a large embedding model on
-    memory-limited deployment instances.
-    """
+def retrieve(
+    query,
+    k=TOP_K
+):
 
     docs = load_corpus()
 
-    query_words = tokenize(query)
+    query_words = tokenize(
+        query
+    )
 
     if not query_words:
         return []
@@ -109,16 +172,25 @@ def retrieve(query, k=TOP_K):
             document["text"]
         )
 
-        overlap = query_words.intersection(
-            document_words
+        overlap = (
+            query_words
+            .intersection(
+                document_words
+            )
         )
 
         if not overlap:
+
             score = 0.0
+
         else:
+
             score = (
                 len(overlap)
-                / max(len(query_words), 1)
+                / max(
+                    len(query_words),
+                    1
+                )
             )
 
         scored.append(
@@ -146,19 +218,46 @@ def retrieve(query, k=TOP_K):
             }
         )
 
+    app.logger.info(
+        "Retrieved %d sources for query.",
+        len(results)
+    )
+
     return results
 
 
+# --------------------------------------------------
+# LLM generation
+# --------------------------------------------------
+
 def generate(prompt):
-    response = get_openai_client().responses.create(
-        model=MODEL_NAME,
-        input=prompt
+
+    app.logger.info(
+        "Sending request to OpenAI."
     )
 
-    return response.output_text.strip()
+    response = (
+        get_openai_client()
+        .responses.create(
+            model=MODEL_NAME,
+            input=prompt
+        )
+    )
+
+    return (
+        response.output_text
+        .strip()
+    )
 
 
-def verify_evidence(question, context):
+# --------------------------------------------------
+# Evidence verification
+# --------------------------------------------------
+
+def verify_evidence(
+    question,
+    context
+):
 
     prompt = f"""
 You are an evidence verification agent.
@@ -181,13 +280,20 @@ or
 INSUFFICIENT
 """
 
-    result = generate(prompt).upper().strip()
+    result = generate(
+        prompt
+    ).upper().strip()
 
     if result == "SUFFICIENT":
+
         return "SUFFICIENT"
 
     return "INSUFFICIENT"
 
+
+# --------------------------------------------------
+# Query rewriting
+# --------------------------------------------------
 
 def rewrite_query(
     question,
@@ -210,15 +316,25 @@ Retrieved evidence:
 Return only the improved retrieval query.
 """
 
-    return generate(prompt).strip()
+    return generate(
+        prompt
+    ).strip()
 
 
-def run_agentic_rag(question):
+# --------------------------------------------------
+# Agentic RAG
+# --------------------------------------------------
+
+def run_agentic_rag(
+    question
+):
 
     query = question
+
     query_history = []
 
     last_sources = []
+
     decision = "INSUFFICIENT"
 
     for attempt in range(
@@ -226,7 +342,15 @@ def run_agentic_rag(question):
         MAX_ATTEMPTS + 1
     ):
 
-        query_history.append(query)
+        app.logger.info(
+            "Agentic attempt %d/%d",
+            attempt,
+            MAX_ATTEMPTS
+        )
+
+        query_history.append(
+            query
+        )
 
         sources = retrieve(
             query,
@@ -238,8 +362,12 @@ def run_agentic_rag(question):
         if sources:
 
             context = "\n\n".join(
-                f"[Source {i + 1}]\n{source['text']}"
-                for i, source in enumerate(sources)
+                f"[Source {i + 1}]\n"
+                f"{source['text']}"
+                for i, source
+                in enumerate(
+                    sources
+                )
             )
 
         else:
@@ -252,6 +380,11 @@ def run_agentic_rag(question):
         decision = verify_evidence(
             question,
             context
+        )
+
+        app.logger.info(
+            "Evidence decision: %s",
+            decision
         )
 
         if decision == "SUFFICIENT":
@@ -306,12 +439,21 @@ not supported by the evidence.
     }
 
 
+# --------------------------------------------------
+# Web interface
+# --------------------------------------------------
+
 @app.route("/")
 def home():
+
     return render_template(
         "index.html"
     )
 
+
+# --------------------------------------------------
+# Health check
+# --------------------------------------------------
 
 @app.route("/health")
 def health():
@@ -324,26 +466,37 @@ def health():
     )
 
 
+# --------------------------------------------------
+# Ask endpoint
+# --------------------------------------------------
+
 @app.route(
     "/api/ask",
     methods=["POST"]
 )
 def ask():
 
-    data = request.get_json(
-        silent=True
-    ) or {}
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
 
-    question = data.get(
-        "question",
-        ""
-    ).strip()
+    question = (
+        data.get(
+            "question",
+            ""
+        )
+        .strip()
+    )
 
     if not question:
 
         return jsonify(
             {
-                "error": "Question is required."
+                "error":
+                    "Question is required."
             }
         ), 400
 
@@ -353,17 +506,32 @@ def ask():
             question
         )
 
-        return jsonify(result)
+        return jsonify(
+            result
+        )
 
     except Exception as error:
 
+        # IMPORTANT:
+        # This prints the complete traceback
+        # to the Render application logs.
+        app.logger.exception(
+            "Agentic RAG execution failed"
+        )
+
         return jsonify(
             {
-                "error": "Agentic RAG execution failed.",
-                "details": str(error)
+                "error":
+                    "Agentic RAG execution failed.",
+                "details":
+                    str(error)
             }
         ), 500
 
+
+# --------------------------------------------------
+# Local development
+# --------------------------------------------------
 
 if __name__ == "__main__":
 
