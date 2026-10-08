@@ -1,0 +1,11 @@
+question_number,question,historical_csv_attempts,historical_csv_final_verification,detailed_paper_trace_initial_state,detailed_paper_trace_second_attempt,reconciliation_status
+1,"What is Retrieval-Augmented Generation?",2,INSUFFICIENT,INSUFFICIENT,YES,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 2 attempts/INSUFFICIENT"
+2,"Why is RAG useful for reducing hallucinations?",2,INSUFFICIENT,SUFFICIENT,NO,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 1 attempt/SUFFICIENT"
+3,"What are the main components of a RAG system?",2,INSUFFICIENT,SUFFICIENT,NO,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 1 attempt/SUFFICIENT"
+4,"What is Agentic RAG?",2,INSUFFICIENT,SUFFICIENT,NO,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 1 attempt/SUFFICIENT"
+5,"How does Agentic RAG differ from traditional RAG?",2,INSUFFICIENT,INSUFFICIENT,YES,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 2 attempts/INSUFFICIENT"
+6,"What is the role of retrieval in RAG?",2,INSUFFICIENT,INSUFFICIENT,YES,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 2 attempts/INSUFFICIENT"
+7,"What is self-reflection in retrieval-augmented systems?",2,INSUFFICIENT,SUFFICIENT,NO,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 1 attempt/SUFFICIENT"
+8,"What is corrective retrieval?",2,INSUFFICIENT,INSUFFICIENT,YES,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 2 attempts/INSUFFICIENT"
+9,"What are some challenges of RAG systems?",2,INSUFFICIENT,SUFFICIENT,NO,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 1 attempt/SUFFICIENT"
+10,"What are possible future directions for RAG?",2,INSUFFICIENT,SUFFICIENT,NO,"CONFLICT — CSV says 2 attempts/INSUFFICIENT; detailed paper trace says 1 attempt/SUFFICIENT"

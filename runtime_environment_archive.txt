@@ -1,0 +1,15 @@
+Environment archive type: PACKAGING/REPRODUCTION ENVIRONMENT (not the historical experiment machine).
+Captured UTC: 2026-09-25
+Python: 3.13.5
+Platform: Linux-6.18.44-x86_64-with-glibc2.41
+Architecture: x86_64
+Processor (reported): 
+Hostname omitted from archive for portability.
+
+Project configuration preserved in source:
+LLM: Qwen/Qwen3-4B
+Embedding: sentence-transformers/all-MiniLM-L6-v2
+FAISS retrieval
+Chunk size: 1000; overlap: 200; TOP_K: 5; random seed: 42
+
+IMPORTANT: The supplied artifacts do not contain a verifiable historical hardware snapshot or exact historical package lock. Therefore this file does not represent the historical runtime environment.

@@ -1,0 +1,5 @@
+STATUS: NOT VERIFIABLE FROM SUPPLIED ARTIFACTS
+
+The project documentation states that the historical experimental corpus was a 19-page research PDF (approximately 69,077 characters; 82 chunks), but the actual historical corpus file is not included in the supplied publishable ZIP. The uploaded research paper is a separate 3-page paper and is not silently substituted as the historical corpus.
+
+Required to close this item: archive the exact 19-page corpus file and record its SHA-256 checksum.

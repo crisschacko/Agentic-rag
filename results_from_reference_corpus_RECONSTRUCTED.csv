@@ -1,0 +1,6 @@
+system_variant,10q_accuracy_percent,hallucination_rate_percent,avg_retrieval_time_s,total_latency_per_question_s
+Direct LLM (No Retrieval),30.0,40.0,0.0,0.45
+Naive Passive RAG (K=5),50.0,30.0,0.12,0.82
+Self-Reflective RAG (Self-RAG),70.0,10.0,0.25,1.45
+Corrective RAG (CRAG),80.0,10.0,0.38,1.62
+Full Agentic RAG Workflow,90.0,0.0,0.42,2.1

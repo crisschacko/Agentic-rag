@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentic-rag-research"
+version = "0.1.0"
+description = "Reproducible Agentic RAG research workflow for evidence-grounded QA"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "faiss-cpu>=1.8.0",
+  "numpy>=1.26",
+  "openai>=1.0",
+  "pandas>=2.0",
+  "pypdf>=5.0",
+  "python-dotenv>=1.0",
+  "sentence-transformers>=3.0",
+]
+
+[project.scripts]
+agentic-rag = "agentic_rag.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

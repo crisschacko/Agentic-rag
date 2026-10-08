@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+title: "Agentic RAG Research Project"
+message: "If you use this project, please cite the project paper and repository."
+type: software
+authors:
+  - family-names: Vinod
+    given-names: Adithya
+  - family-names: Chacko Chirayath Staby Chacko
+    given-names: Criss
+version: 0.1.0
+date-released: 2026-09-25
+abstract: "A research-oriented implementation of evidence verification and adaptive retrieval for Agentic RAG question answering."

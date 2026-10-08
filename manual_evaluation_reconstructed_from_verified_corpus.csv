@@ -1,0 +1,11 @@
+question_no,question,manual_ground_truth
+1,What is Henry Feilden's occupation?,Conservative Party politician / MP
+2,"Who was the screenwriter for ""Death of a Batman""?","Distractor query; no legitimate historical movie titled ""Death of a Batman""; retrieved noise can induce Batman-screenwriter hallucination"
+3,In what city was Billy Carlson born?,"San Diego, California"
+4,What is the religion of John Gwynn?,Anglican / Church of Ireland priest
+5,What sport does Kiribati men's national basketball team play?,Basketball
+6,In what city was Abraham Raimbach born?,"London, England"
+7,"In what country is Wilcza Jama, Sokółka County?",Poland
+8,What sport does 2004 Legg Mason Tennis Classic play?,Tennis
+9,"Who is the author of ""Skin""?",Roald Dahl (short story collection) or Kathe Koja (novel); not Desmond Cole
+10,How did US states get their names?,"Diverse origins including people, Native American languages, Spanish/French and geographic/royal sources"

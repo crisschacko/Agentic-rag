@@ -1,0 +1,11 @@
+parameter,value
+Corpus pages,19
+Approx. corpus characters,69077
+Retrieval chunks,82
+Chunk target characters,800
+Chunk overlap characters,150
+Embedding model,text-embedding-3-small (as stated in corpus)
+Vector index,FAISS / HNSW flat index (as stated in corpus)
+Naive RAG top-K,5
+Evaluation questions,10
+Local experimental variants,Direct LLM; Naive RAG; Self-RAG simulation; CRAG implementation; Full Agentic Workflow
