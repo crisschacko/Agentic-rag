@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 
 from agentic_rag.cli import build_agent
 
@@ -21,12 +21,7 @@ def get_agent():
 
 @app.route("/")
 def home():
-    return jsonify({
-        "project": "Agentic RAG",
-        "status": "online",
-        "description": "Evidence-grounded Agentic Retrieval-Augmented Generation system",
-        "version": "0.1.0"
-    })
+    return render_template("index.html")
 
 
 @app.route("/health")
@@ -76,4 +71,7 @@ def ask():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
-    app.run(host="0.0.0.0", port=port)
+    app.run(
+        host="0.0.0.0",
+        port=port
+    )
