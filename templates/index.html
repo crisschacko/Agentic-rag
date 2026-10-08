@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Agentic RAG</title>
+    <title>Agentic RAG | Research System</title>
 
     <style>
         * {
@@ -148,7 +148,6 @@
 
     </section>
 
-
     <section class="panel">
 
         <h2>Answer</h2>
@@ -178,7 +177,6 @@
 
     </section>
 
-
     <section class="panel">
 
         <h2>Retrieved Sources</h2>
@@ -194,7 +192,6 @@
 <footer>
     Agentic RAG Research Project
 </footer>
-
 
 <script>
 
@@ -212,7 +209,6 @@ async function askQuestion() {
     if (!question) {
         status.textContent =
             "Please enter a question.";
-
         return;
     }
 
@@ -237,16 +233,13 @@ async function askQuestion() {
 
         });
 
-
         const data = await response.json();
-
 
         if (!response.ok) {
             throw new Error(
                 data.error || "Request failed."
             );
         }
-
 
         document.getElementById("answer").textContent =
             data.answer;
@@ -260,12 +253,10 @@ async function askQuestion() {
         document.getElementById("queries").textContent =
             data.query_history.length;
 
-
         const sources =
             document.getElementById("sources");
 
         sources.innerHTML = "";
-
 
         data.sources.forEach((source) => {
 
@@ -280,7 +271,6 @@ async function askQuestion() {
             sources.appendChild(element);
 
         });
-
 
         status.textContent =
             "Completed successfully.";
