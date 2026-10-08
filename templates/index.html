@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Agentic RAG</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b1120;
+            color: #e5e7eb;
+        }
+
+        header {
+            padding: 32px 8%;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 34px;
+        }
+
+        header p {
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        main {
+            width: 84%;
+            max-width: 1000px;
+            margin: 40px auto;
+        }
+
+        .panel {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: #0f172a;
+            color: #fff;
+            resize: vertical;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 16px;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 15px;
+            color: #94a3b8;
+        }
+
+        .answer {
+            white-space: pre-wrap;
+            line-height: 1.7;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            padding: 16px;
+            border-radius: 10px;
+            background: #0f172a;
+            border: 1px solid #1f2937;
+        }
+
+        .metric span {
+            display: block;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .source {
+            padding: 12px;
+            margin-top: 10px;
+            background: #0f172a;
+            border-radius: 8px;
+            border: 1px solid #1f2937;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Agentic RAG</h1>
+    <p>Evidence-Grounded Retrieval-Augmented Generation Research System</p>
+</header>
+
+<main>
+
+    <section class="panel">
+
+        <h2>Ask a Research Question</h2>
+
+        <textarea
+            id="question"
+            placeholder="Enter your research question..."
+        ></textarea>
+
+        <button id="askButton" onclick="askQuestion()">
+            Ask Agent
+        </button>
+
+        <div id="status"></div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>Answer</h2>
+
+        <div id="answer" class="answer">
+            Your answer will appear here.
+        </div>
+
+        <div class="metadata">
+
+            <div class="metric">
+                <span>Decision</span>
+                <strong id="decision">—</strong>
+            </div>
+
+            <div class="metric">
+                <span>Retrieval Attempts</span>
+                <strong id="attempts">—</strong>
+            </div>
+
+            <div class="metric">
+                <span>Queries</span>
+                <strong id="queries">—</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <h2>Retrieved Sources</h2>
+
+        <div id="sources">
+            No sources yet.
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    Agentic RAG Research Project
+</footer>
+
+
+<script>
+
+async function askQuestion() {
+
+    const question =
+        document.getElementById("question").value.trim();
+
+    const button =
+        document.getElementById("askButton");
+
+    const status =
+        document.getElementById("status");
+
+    if (!question) {
+        status.textContent =
+            "Please enter a question.";
+
+        return;
+    }
+
+    button.disabled = true;
+
+    status.textContent =
+        "Agent is retrieving and verifying evidence...";
+
+    try {
+
+        const response = await fetch("/api/ask", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                question: question
+            })
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || "Request failed."
+            );
+        }
+
+
+        document.getElementById("answer").textContent =
+            data.answer;
+
+        document.getElementById("decision").textContent =
+            data.decision;
+
+        document.getElementById("attempts").textContent =
+            data.attempts;
+
+        document.getElementById("queries").textContent =
+            data.query_history.length;
+
+
+        const sources =
+            document.getElementById("sources");
+
+        sources.innerHTML = "";
+
+
+        data.sources.forEach((source) => {
+
+            const element =
+                document.createElement("div");
+
+            element.className = "source";
+
+            element.textContent =
+                `${source.source} • Page ${source.page ?? "N/A"} • Score ${Number(source.score).toFixed(4)}`;
+
+            sources.appendChild(element);
+
+        });
+
+
+        status.textContent =
+            "Completed successfully.";
+
+    } catch (error) {
+
+        status.textContent =
+            error.message;
+
+    } finally {
+
+        button.disabled = false;
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
