@@ -1,19 +1,16 @@
 import os
+import re
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
 from openai import OpenAI
 from pypdf import PdfReader
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
 
 
 app = Flask(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-
 PDF_PATH = DATA_DIR / "Reference corpus.pdf"
 
 MODEL_NAME = os.getenv(
@@ -21,18 +18,11 @@ MODEL_NAME = os.getenv(
     "gpt-5.6-luna"
 )
 
-EMBEDDING_MODEL = os.getenv(
-    "EMBEDDING_MODEL",
-    "sentence-transformers/all-MiniLM-L6-v2"
-)
-
 TOP_K = int(os.getenv("TOP_K", "4"))
 MAX_ATTEMPTS = int(os.getenv("MAX_ATTEMPTS", "2"))
 
 client = None
-embedding_model = None
 documents = []
-index = None
 
 
 def get_openai_client():
@@ -87,73 +77,65 @@ def load_corpus():
     return documents
 
 
-def get_embedding_model():
-    global embedding_model
-
-    if embedding_model is None:
-        embedding_model = SentenceTransformer(
-            EMBEDDING_MODEL
+def tokenize(text):
+    return set(
+        re.findall(
+            r"\b[a-zA-Z0-9]{2,}\b",
+            text.lower()
         )
-
-    return embedding_model
-
-
-def build_index():
-    global index
-
-    load_corpus()
-
-    if index is not None:
-        return index
-
-    model = get_embedding_model()
-
-    texts = [
-        document["text"]
-        for document in documents
-    ]
-
-    vectors = model.encode(
-        texts,
-        convert_to_numpy=True,
-        normalize_embeddings=True
-    ).astype("float32")
-
-    index = faiss.IndexFlatIP(
-        vectors.shape[1]
     )
-
-    index.add(vectors)
-
-    return index
 
 
 def retrieve(query, k=TOP_K):
-    load_corpus()
-    vector_index = build_index()
-    model = get_embedding_model()
+    """
+    Lightweight lexical retrieval.
 
-    query_vector = model.encode(
-        [query],
-        convert_to_numpy=True,
-        normalize_embeddings=True
-    ).astype("float32")
+    This avoids loading a large embedding model on
+    memory-limited deployment instances.
+    """
 
-    scores, indices = vector_index.search(
-        query_vector,
-        min(k, len(documents))
+    docs = load_corpus()
+
+    query_words = tokenize(query)
+
+    if not query_words:
+        return []
+
+    scored = []
+
+    for document in docs:
+
+        document_words = tokenize(
+            document["text"]
+        )
+
+        overlap = query_words.intersection(
+            document_words
+        )
+
+        if not overlap:
+            score = 0.0
+        else:
+            score = (
+                len(overlap)
+                / max(len(query_words), 1)
+            )
+
+        scored.append(
+            (
+                score,
+                document
+            )
+        )
+
+    scored.sort(
+        key=lambda item: item[0],
+        reverse=True
     )
 
     results = []
 
-    for score, idx in zip(
-        scores[0],
-        indices[0]
-    ):
-        if idx < 0:
-            continue
-
-        document = documents[int(idx)]
+    for score, document in scored[:k]:
 
         results.append(
             {
@@ -177,6 +159,7 @@ def generate(prompt):
 
 
 def verify_evidence(question, context):
+
     prompt = f"""
 You are an evidence verification agent.
 
@@ -198,18 +181,20 @@ or
 INSUFFICIENT
 """
 
-    result = generate(prompt).upper()
+    result = generate(prompt).upper().strip()
 
-    if (
-        "SUFFICIENT" in result
-        and "INSUFFICIENT" not in result
-    ):
+    if result == "SUFFICIENT":
         return "SUFFICIENT"
 
     return "INSUFFICIENT"
 
 
-def rewrite_query(question, previous_query, context):
+def rewrite_query(
+    question,
+    previous_query,
+    context
+):
+
     prompt = f"""
 Create a better research retrieval query.
 
@@ -229,6 +214,7 @@ Return only the improved retrieval query.
 
 
 def run_agentic_rag(question):
+
     query = question
     query_history = []
 
@@ -249,10 +235,19 @@ def run_agentic_rag(question):
 
         last_sources = sources
 
-        context = "\n\n".join(
-            f"[Source {i + 1}]\n{source['text']}"
-            for i, source in enumerate(sources)
-        )
+        if sources:
+
+            context = "\n\n".join(
+                f"[Source {i + 1}]\n{source['text']}"
+                for i, source in enumerate(sources)
+            )
+
+        else:
+
+            context = (
+                "No relevant research evidence "
+                "was retrieved."
+            )
 
         decision = verify_evidence(
             question,
@@ -320,6 +315,7 @@ def home():
 
 @app.route("/health")
 def health():
+
     return jsonify(
         {
             "status": "healthy",
@@ -344,6 +340,7 @@ def ask():
     ).strip()
 
     if not question:
+
         return jsonify(
             {
                 "error": "Question is required."
