@@ -1,9 +1,9 @@
-faiss-cpu>=1.8.0
-numpy>=1.26
-openai>=1.0
-pandas>=2.0
-pypdf>=5.0
-python-dotenv>=1.0
-sentence-transformers>=3.0
 Flask>=3.1
 gunicorn>=23.0
+openai>=1.0
+pypdf>=5.0
+sentence-transformers>=3.0
+faiss-cpu>=1.8.0
+numpy>=1.26
+python-dotenv>=1.0
+pandas>=2.0
